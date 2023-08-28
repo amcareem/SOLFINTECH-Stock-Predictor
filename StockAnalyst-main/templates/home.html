@@ -1,0 +1,39 @@
+{% extends 'layout.html' %}
+
+{% block title %}
+  <h2 style="font-family: 'Roboto', sans-serif; color: #333; text-align: center; margin-top: 40px;">Home</h2>
+{% endblock %}
+
+{% block body %}
+  <div style="padding: 20px; font-family: 'Roboto', sans-serif; line-height: 1.6;">
+      <p style="font-size: 18px; color: #666;">
+          Your trusted partner in the world of stocks, shares, and investments. With over 50 million subscribers, we're committed to innovating the future of finance. Dive in and discover how our new Intelligent Stock Trader platform can amplify your investment journey.
+      </p>
+
+      <!-- What-If form -->
+      <form action="http://localhost:5000/result" method="POST">
+        <p>Enter the name of the company: <input type="text" name="impath" /></p>
+        <p>Interest Rate Change:
+            <select name="interest_rate_change">
+                <option value="-2">-2%</option>
+                <option value="-1">-1%</option>
+                <option value="0" selected>0%</option>
+                <option value="1">1%</option>
+                <option value="2">2%</option>
+            </select>
+        </p>
+        <p>Market Confidence Index:
+            <input type="range" name="confidence_index" min="0" max="100" value="50">
+        </p>
+        <p><input type="submit" value="Predict with Adjustments" /></p>
+      </form>
+
+      <div style="display: flex; justify-content: space-around; margin-top: 30px;">
+          <a href="http://localhost:8502/" style="background: linear-gradient(135deg, #007BFF 0%, #6610f2 100%); color: #fff; padding: 10px 20px; text-decoration: none; border-radius: 4px; transition: background-color 0.3s ease, transform 0.3s ease; display: flex; align-items: center;"><i class="fas fa-robot" style="margin-right: 10px;"></i> AI PREDICTOR</a>
+
+          <a href="http://localhost:5000/stock_suggestions" style="background: linear-gradient(135deg, #ffc107 0%, #e91e63 100%); color: #fff; padding: 10px 20px; text-decoration: none; border-radius: 4px; transition: background-color 0.3s ease, transform 0.3s ease; display: flex; align-items: center;"><i class="fas fa-arrow-down" style="margin-right: 10px;"></i> Lowest Stocks</a>
+      </div>
+  </div>
+
+  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script> <!-- Font Awesome for icons -->
+{% endblock %}

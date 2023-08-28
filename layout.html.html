@@ -1,0 +1,50 @@
+<html>
+<head>
+<title>layout.html</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #e8bf6a;}
+.s1 { color: #a9b7c6;}
+.s2 { color: #bababa;}
+.s3 { color: #a5c261;}
+.s4 { color: #a9b7c6;}
+.s5 { color: #e8bf6a;}
+.s6 { color: #6a8759;}
+.s7 { color: #808080;}
+.s8 { color: #bababa;}
+</style>
+</head>
+<body bgcolor="#2b2b2b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+layout.html</font>
+</center></td></tr></table>
+<pre><span class="s0">&lt;html&gt;</span>
+ <span class="s0">&lt;head&gt;</span>
+  <span class="s0">&lt;meta </span><span class="s2">charset</span><span class="s3">=&quot;utf-8&quot;</span><span class="s0">&gt;</span>
+  <span class="s0">&lt;title&gt;</span><span class="s1">StockAnalyst</span><span class="s0">&lt;/title&gt;</span>
+  <span class="s0">&lt;link </span><span class="s2">rel</span><span class="s3">=&quot;stylesheet&quot; </span><span class="s2">href</span><span class="s3">=&quot;https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css&quot;</span><span class="s0">&gt;</span>
+ <span class="s0">&lt;/head&gt;</span>
+ <span class="s0">&lt;body&gt;</span>
+
+  <span class="s4">{% </span><span class="s5">include </span><span class="s6">'navbar.html' </span><span class="s4">%}</span>
+  <span class="s0">&lt;div </span><span class="s2">class</span><span class="s3">='container'</span><span class="s0">&gt;</span>
+    <span class="s0">&lt;div </span><span class="s2">class</span><span class="s3">=&quot;jumbotron text-center&quot;</span><span class="s0">&gt;</span>
+        <span class="s0">&lt;h1&gt; &lt;a </span><span class="s2">href</span><span class="s3">=&quot;#&quot;</span><span class="s0">&gt;</span><span class="s1">SOLFINTECH Stock Predictor</span><span class="s0">&lt;/a&gt; &lt;/h1&gt;</span>
+    <span class="s7">&lt;!-- Add somewhere appropriate in your template --&gt;</span>
+<span class="s0">&lt;a </span><span class="s2">href</span><span class="s3">=&quot;/dashboard/&quot;</span><span class="s0">&gt;</span><span class="s1">Go to Dashboard</span><span class="s0">&lt;/a&gt;</span>
+
+
+            <span class="s0">&lt;p </span><span class="s2">class</span><span class="s3">=&quot;lead&quot;</span><span class="s0">&gt; </span><span class="s1">Unlease the Power of ML and the future of trading solutions</span><span class="s0">&lt;/p&gt;</span>
+        <span class="s4">{% </span><span class="s5">block </span><span class="s8">title </span><span class="s4">%} {% </span><span class="s5">endblock </span><span class="s4">%}</span>
+    <span class="s0">&lt;/div&gt;</span>
+   <span class="s4">{% </span><span class="s5">block </span><span class="s8">body </span><span class="s4">%}{% </span><span class="s5">endblock </span><span class="s4">%}</span>
+  <span class="s0">&lt;/div&gt;</span>
+  <span class="s0">&lt;script </span><span class="s2">src</span><span class="s3">=&quot;https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js&quot;</span><span class="s0">&gt; &lt;/script&gt;</span>
+ <span class="s0">&lt;/body&gt;</span>
+
+<span class="s0">&lt;/html&gt;</span>
+</pre>
+</body>
+</html>

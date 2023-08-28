@@ -1,0 +1,167 @@
+<html>
+<head>
+<title>StockPredictor.py</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cc7832;}
+.s1 { color: #a9b7c6;}
+.s2 { color: #808080;}
+.s3 { color: #6897bb;}
+.s4 { color: #6a8759;}
+</style>
+</head>
+<body bgcolor="#2b2b2b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+StockPredictor.py</font>
+</center></td></tr></table>
+<pre><span class="s0">import </span><span class="s1">os</span>
+<span class="s0">import </span><span class="s1">numpy </span><span class="s0">as </span><span class="s1">np</span>
+<span class="s0">import </span><span class="s1">pandas </span><span class="s0">as </span><span class="s1">pd</span>
+<span class="s0">from </span><span class="s1">sklearn.linear_model </span><span class="s0">import </span><span class="s1">LinearRegression</span>
+<span class="s0">from </span><span class="s1">sklearn.model_selection </span><span class="s0">import </span><span class="s1">train_test_split</span>
+<span class="s0">from </span><span class="s1">sklearn.metrics </span><span class="s0">import </span><span class="s1">mean_squared_error</span>
+<span class="s0">from </span><span class="s1">sklearn.preprocessing </span><span class="s0">import </span><span class="s1">MinMaxScaler</span>
+<span class="s0">import </span><span class="s1">imageio</span>
+<span class="s0">import </span><span class="s1">matplotlib.pyplot </span><span class="s0">as </span><span class="s1">plt</span>
+<span class="s0">from </span><span class="s1">statsmodels.tsa.arima.model </span><span class="s0">import </span><span class="s1">ARIMA</span>
+<span class="s0">from </span><span class="s1">keras.models </span><span class="s0">import </span><span class="s1">Sequential</span>
+<span class="s0">from </span><span class="s1">keras.layers </span><span class="s0">import </span><span class="s1">Dense</span><span class="s0">, </span><span class="s1">LSTM</span>
+<span class="s0">import </span><span class="s1">tensorflow </span><span class="s0">as </span><span class="s1">tf</span>
+
+<span class="s2"># Ensure reproducibility</span>
+<span class="s1">np.random.seed(</span><span class="s3">42</span><span class="s1">)</span>
+<span class="s1">tf.random.set_seed(</span><span class="s3">42</span><span class="s1">)</span>
+
+<span class="s0">class </span><span class="s1">StockPredictor:</span>
+    <span class="s0">def </span><span class="s1">__init__(self</span><span class="s0">, </span><span class="s1">data_path):</span>
+        <span class="s1">self.data = pd.read_csv(data_path)</span>
+        <span class="s1">self.scores = {}</span>
+        <span class="s1">self.preprocess_data()</span>
+
+    <span class="s0">def </span><span class="s1">preprocess_data(self):</span>
+        <span class="s1">self.data = self.data.sort_values(by=[</span><span class="s4">'name'</span><span class="s0">, </span><span class="s4">'date'</span><span class="s1">])</span>
+        <span class="s1">self.data.reset_index(drop=</span><span class="s0">True, </span><span class="s1">inplace=</span><span class="s0">True</span><span class="s1">)</span>
+
+    <span class="s0">def </span><span class="s1">train_test_split(self</span><span class="s0">, </span><span class="s1">stock_name):</span>
+        <span class="s1">stock_data = self.data[self.data[</span><span class="s4">'name'</span><span class="s1">] == stock_name]</span>
+        <span class="s1">X = stock_data[[</span><span class="s4">'open'</span><span class="s0">, </span><span class="s4">'high'</span><span class="s0">, </span><span class="s4">'low'</span><span class="s0">, </span><span class="s4">'volume'</span><span class="s1">]].values</span>
+        <span class="s1">y = stock_data[</span><span class="s4">'close'</span><span class="s1">].values</span>
+        <span class="s1">X_train</span><span class="s0">, </span><span class="s1">X_test</span><span class="s0">, </span><span class="s1">y_train</span><span class="s0">, </span><span class="s1">y_test = train_test_split(X</span><span class="s0">, </span><span class="s1">y</span><span class="s0">, </span><span class="s1">test_size=</span><span class="s3">0.2</span><span class="s0">, </span><span class="s1">shuffle=</span><span class="s0">False</span><span class="s1">)</span>
+        <span class="s0">return </span><span class="s1">X_train</span><span class="s0">, </span><span class="s1">X_test</span><span class="s0">, </span><span class="s1">y_train</span><span class="s0">, </span><span class="s1">y_test</span>
+
+    <span class="s0">def </span><span class="s1">plot_predictions(self</span><span class="s0">, </span><span class="s1">y_test</span><span class="s0">, </span><span class="s1">predictions</span><span class="s0">, </span><span class="s1">stock_name</span><span class="s0">, </span><span class="s1">model_name</span><span class="s0">, </span><span class="s1">save_path):</span>
+        <span class="s1">plt.figure(figsize=(</span><span class="s3">15</span><span class="s0">, </span><span class="s3">7</span><span class="s1">))</span>
+        <span class="s1">plt.plot(y_test</span><span class="s0">, </span><span class="s1">color=</span><span class="s4">'blue'</span><span class="s0">, </span><span class="s1">label=</span><span class="s4">'Actual Stock Price'</span><span class="s1">)</span>
+        <span class="s1">plt.plot(predictions</span><span class="s0">, </span><span class="s1">color=</span><span class="s4">'red'</span><span class="s0">, </span><span class="s1">linestyle=</span><span class="s4">'dashed'</span><span class="s0">, </span><span class="s1">label=</span><span class="s4">'Predicted Stock Price'</span><span class="s1">)</span>
+        <span class="s1">plt.title(</span><span class="s4">f'</span><span class="s0">{</span><span class="s1">stock_name</span><span class="s0">} </span><span class="s4">Stock Price Prediction using </span><span class="s0">{</span><span class="s1">model_name</span><span class="s0">}</span><span class="s4">'</span><span class="s1">)</span>
+        <span class="s1">plt.xlabel(</span><span class="s4">'Time'</span><span class="s1">)</span>
+        <span class="s1">plt.ylabel(</span><span class="s4">'Stock Price'</span><span class="s1">)</span>
+        <span class="s1">plt.legend()</span>
+        <span class="s1">plt.savefig(save_path</span><span class="s0">, </span><span class="s1">dpi=</span><span class="s3">300</span><span class="s1">)</span>
+        <span class="s1">plt.close()</span>
+
+    <span class="s0">def </span><span class="s1">train_LinearRegression(self</span><span class="s0">, </span><span class="s1">stock_name</span><span class="s0">, </span><span class="s1">save_path):</span>
+        <span class="s1">X_train</span><span class="s0">, </span><span class="s1">X_test</span><span class="s0">, </span><span class="s1">y_train</span><span class="s0">, </span><span class="s1">y_test = self.train_test_split(stock_name)</span>
+        <span class="s1">model = LinearRegression().fit(X_train</span><span class="s0">, </span><span class="s1">y_train)</span>
+        <span class="s1">predictions = model.predict(X_test)</span>
+        <span class="s1">mse = mean_squared_error(y_test</span><span class="s0">, </span><span class="s1">predictions)</span>
+        <span class="s0">if </span><span class="s1">stock_name </span><span class="s0">not in </span><span class="s1">self.scores:</span>
+            <span class="s1">self.scores[stock_name] = {}</span>
+        <span class="s1">self.scores[stock_name][</span><span class="s4">'Linear Regression'</span><span class="s1">] = mse</span>
+        <span class="s1">self.plot_predictions(y_test</span><span class="s0">, </span><span class="s1">predictions</span><span class="s0">, </span><span class="s1">stock_name</span><span class="s0">, </span><span class="s4">&quot;Linear Regression&quot;</span><span class="s0">, </span><span class="s1">save_path)</span>
+        <span class="s0">return </span><span class="s1">predictions</span>
+
+    <span class="s0">def </span><span class="s1">train_ARIMA(self</span><span class="s0">, </span><span class="s1">stock_name</span><span class="s0">, </span><span class="s1">save_path):</span>
+        <span class="s1">_</span><span class="s0">, </span><span class="s1">_</span><span class="s0">, </span><span class="s1">y_train</span><span class="s0">, </span><span class="s1">y_test = self.train_test_split(stock_name)</span>
+        <span class="s1">model = ARIMA(y_train</span><span class="s0">, </span><span class="s1">order=(</span><span class="s3">5</span><span class="s0">, </span><span class="s3">1</span><span class="s0">, </span><span class="s3">0</span><span class="s1">))</span>
+        <span class="s1">model_fit = model.fit()</span>
+        <span class="s1">predictions = model_fit.forecast(steps=len(y_test))</span>
+        <span class="s1">mse = mean_squared_error(y_test</span><span class="s0">, </span><span class="s1">predictions)</span>
+        <span class="s1">self.scores[stock_name][</span><span class="s4">'ARIMA'</span><span class="s1">] = mse</span>
+        <span class="s1">self.plot_predictions(y_test</span><span class="s0">, </span><span class="s1">predictions</span><span class="s0">, </span><span class="s1">stock_name</span><span class="s0">, </span><span class="s4">&quot;ARIMA&quot;</span><span class="s0">, </span><span class="s1">save_path)</span>
+        <span class="s0">return </span><span class="s1">predictions</span>
+
+    <span class="s0">def </span><span class="s1">train_LSTM(self</span><span class="s0">, </span><span class="s1">stock_name</span><span class="s0">, </span><span class="s1">save_path):</span>
+        <span class="s1">X_train</span><span class="s0">, </span><span class="s1">X_test</span><span class="s0">, </span><span class="s1">y_train</span><span class="s0">, </span><span class="s1">y_test = self.train_test_split(stock_name)</span>
+        <span class="s1">scaler = MinMaxScaler(feature_range=(</span><span class="s3">0</span><span class="s0">, </span><span class="s3">1</span><span class="s1">))</span>
+        <span class="s1">X_train_scaled = scaler.fit_transform(X_train)</span>
+        <span class="s1">X_test_scaled = scaler.transform(X_test)</span>
+        <span class="s1">X_train_scaled = np.reshape(X_train_scaled</span><span class="s0">, </span><span class="s1">(X_train_scaled.shape[</span><span class="s3">0</span><span class="s1">]</span><span class="s0">, </span><span class="s1">X_train_scaled.shape[</span><span class="s3">1</span><span class="s1">]</span><span class="s0">, </span><span class="s3">1</span><span class="s1">))</span>
+        <span class="s1">X_test_scaled = np.reshape(X_test_scaled</span><span class="s0">, </span><span class="s1">(X_test_scaled.shape[</span><span class="s3">0</span><span class="s1">]</span><span class="s0">, </span><span class="s1">X_test_scaled.shape[</span><span class="s3">1</span><span class="s1">]</span><span class="s0">, </span><span class="s3">1</span><span class="s1">))</span>
+        <span class="s1">model = Sequential()</span>
+        <span class="s1">model.add(LSTM(units=</span><span class="s3">50</span><span class="s0">, </span><span class="s1">return_sequences=</span><span class="s0">True, </span><span class="s1">input_shape=(X_train_scaled.shape[</span><span class="s3">1</span><span class="s1">]</span><span class="s0">, </span><span class="s3">1</span><span class="s1">)))</span>
+        <span class="s1">model.add(LSTM(units=</span><span class="s3">50</span><span class="s1">))</span>
+        <span class="s1">model.add(Dense(units=</span><span class="s3">1</span><span class="s1">))</span>
+        <span class="s1">model.compile(optimizer=</span><span class="s4">'adam'</span><span class="s0">, </span><span class="s1">loss=</span><span class="s4">'mean_squared_error'</span><span class="s1">)</span>
+        <span class="s1">model.fit(X_train_scaled</span><span class="s0">, </span><span class="s1">y_train</span><span class="s0">, </span><span class="s1">epochs=</span><span class="s3">50</span><span class="s0">, </span><span class="s1">batch_size=</span><span class="s3">32</span><span class="s1">)</span>
+        <span class="s1">predictions = model.predict(X_test_scaled).squeeze()</span>
+        <span class="s1">mse = mean_squared_error(y_test</span><span class="s0">, </span><span class="s1">predictions)</span>
+        <span class="s1">self.scores[stock_name][</span><span class="s4">'LSTM'</span><span class="s1">] = mse</span>
+        <span class="s1">self.plot_predictions(y_test</span><span class="s0">, </span><span class="s1">predictions</span><span class="s0">, </span><span class="s1">stock_name</span><span class="s0">, </span><span class="s4">&quot;LSTM&quot;</span><span class="s0">, </span><span class="s1">save_path)</span>
+        <span class="s0">return </span><span class="s1">predictions</span>
+
+    <span class="s0">def </span><span class="s1">get_best_model(self</span><span class="s0">, </span><span class="s1">stock_name):</span>
+        <span class="s0">return </span><span class="s1">min(self.scores[stock_name]</span><span class="s0">, </span><span class="s1">key=self.scores[stock_name].get)</span>
+
+    <span class="s0">def </span><span class="s1">ensemble_predictions(self</span><span class="s0">, </span><span class="s1">stock_name</span><span class="s0">, </span><span class="s1">lr_pred</span><span class="s0">, </span><span class="s1">arima_pred</span><span class="s0">, </span><span class="s1">lstm_pred):</span>
+        <span class="s1">lr_weight = </span><span class="s3">1 </span><span class="s1">/ self.scores[stock_name][</span><span class="s4">'Linear Regression'</span><span class="s1">]</span>
+        <span class="s1">arima_weight = </span><span class="s3">1 </span><span class="s1">/ self.scores[stock_name][</span><span class="s4">'ARIMA'</span><span class="s1">]</span>
+        <span class="s1">lstm_weight = </span><span class="s3">1 </span><span class="s1">/ self.scores[stock_name][</span><span class="s4">'LSTM'</span><span class="s1">]</span>
+        <span class="s1">total_weight = lr_weight + arima_weight + lstm_weight</span>
+        <span class="s0">return </span><span class="s1">(lr_weight * lr_pred + arima_weight * arima_pred + lstm_weight * lstm_pred) / total_weight</span>
+
+<span class="s0">if </span><span class="s1">__name__ == </span><span class="s4">&quot;__main__&quot;</span><span class="s1">:</span>
+    <span class="s1">predictor = StockPredictor(</span><span class="s4">'cleaned_stock_data.csv'</span><span class="s1">)</span>
+    <span class="s1">stock_names = [</span><span class="s4">&quot;AAPL&quot;</span><span class="s0">, </span><span class="s4">&quot;ADBE&quot;</span><span class="s0">, </span><span class="s4">&quot;AMZN&quot;</span><span class="s0">, </span><span class="s4">&quot;BRK.A&quot;</span><span class="s0">, </span><span class="s4">&quot;CSCO&quot;</span><span class="s0">, </span><span class="s4">&quot;DIS&quot;</span><span class="s0">, </span><span class="s4">&quot;ECL&quot;</span><span class="s0">, </span><span class="s4">&quot;GEO&quot;</span><span class="s0">, </span><span class="s4">&quot;GOOGL&quot;</span><span class="s0">, </span><span class="s4">&quot;HSBC&quot;</span><span class="s0">, </span><span class="s4">&quot;IBM&quot;</span><span class="s0">, </span><span class="s4">&quot;INTC&quot;</span><span class="s0">, </span><span class="s4">&quot;JNJ&quot;</span><span class="s0">, </span><span class="s4">&quot;KO&quot;</span><span class="s0">, </span><span class="s4">&quot;MCD&quot;</span><span class="s0">, </span><span class="s4">&quot;META&quot;</span><span class="s0">, </span><span class="s4">&quot;MSFT&quot;</span><span class="s0">, </span><span class="s4">&quot;NVDA&quot;</span><span class="s0">, </span><span class="s4">&quot;ORCL&quot;</span><span class="s0">, </span><span class="s4">&quot;PEP&quot;</span><span class="s0">, </span><span class="s4">&quot;QCOM&quot;</span><span class="s0">, </span><span class="s4">&quot;RYAAY&quot;</span><span class="s0">, </span><span class="s4">&quot;SHEL&quot;</span><span class="s0">, </span><span class="s4">&quot;TM&quot;</span><span class="s0">, </span><span class="s4">&quot;TSLA&quot;</span><span class="s0">, </span><span class="s4">&quot;UPS&quot;</span><span class="s0">, </span><span class="s4">&quot;VZ&quot;</span><span class="s0">, </span><span class="s4">&quot;WFC&quot;</span><span class="s0">, </span><span class="s4">&quot;WMT&quot;</span><span class="s0">, </span><span class="s4">&quot;YELP&quot;</span><span class="s1">]</span>
+    <span class="s1">saved_plots = []</span>
+
+    <span class="s0">for </span><span class="s1">stock_name </span><span class="s0">in </span><span class="s1">stock_names:</span>
+        <span class="s1">print(</span><span class="s4">f&quot;Processing </span><span class="s0">{</span><span class="s1">stock_name</span><span class="s0">}</span><span class="s4">...&quot;</span><span class="s1">)</span>
+        <span class="s1">lr_plot_path = </span><span class="s4">f&quot;</span><span class="s0">{</span><span class="s1">stock_name</span><span class="s0">}</span><span class="s4">_LinearRegression_plot.png&quot;</span>
+        <span class="s1">arima_plot_path = </span><span class="s4">f&quot;</span><span class="s0">{</span><span class="s1">stock_name</span><span class="s0">}</span><span class="s4">_ARIMA_plot.png&quot;</span>
+        <span class="s1">lstm_plot_path = </span><span class="s4">f&quot;</span><span class="s0">{</span><span class="s1">stock_name</span><span class="s0">}</span><span class="s4">_LSTM_plot.png&quot;</span>
+        <span class="s1">ensemble_plot_path = </span><span class="s4">f&quot;</span><span class="s0">{</span><span class="s1">stock_name</span><span class="s0">}</span><span class="s4">_Ensemble_plot.png&quot;</span>
+        <span class="s1">saved_plots.extend([lr_plot_path</span><span class="s0">, </span><span class="s1">arima_plot_path</span><span class="s0">, </span><span class="s1">lstm_plot_path</span><span class="s0">, </span><span class="s1">ensemble_plot_path])</span>
+        <span class="s1">lr_predictions = predictor.train_LinearRegression(stock_name</span><span class="s0">, </span><span class="s1">lr_plot_path)</span>
+        <span class="s1">arima_predictions = predictor.train_ARIMA(stock_name</span><span class="s0">, </span><span class="s1">arima_plot_path)</span>
+        <span class="s1">lstm_predictions = predictor.train_LSTM(stock_name</span><span class="s0">, </span><span class="s1">lstm_plot_path)</span>
+        <span class="s1">ensemble_predictions = predictor.ensemble_predictions(stock_name</span><span class="s0">, </span><span class="s1">lr_predictions</span><span class="s0">, </span><span class="s1">arima_predictions</span><span class="s0">, </span><span class="s1">lstm_predictions)</span>
+        <span class="s1">_</span><span class="s0">, </span><span class="s1">_</span><span class="s0">, </span><span class="s1">_</span><span class="s0">, </span><span class="s1">y_test = predictor.train_test_split(stock_name)</span>
+        <span class="s1">ensemble_mse = mean_squared_error(y_test</span><span class="s0">, </span><span class="s1">ensemble_predictions)</span>
+        <span class="s1">predictor.scores[stock_name][</span><span class="s4">'Ensemble'</span><span class="s1">] = ensemble_mse</span>
+        <span class="s1">predictor.plot_predictions(y_test</span><span class="s0">, </span><span class="s1">ensemble_predictions</span><span class="s0">, </span><span class="s1">stock_name</span><span class="s0">, </span><span class="s4">&quot;Ensemble&quot;</span><span class="s0">, </span><span class="s1">ensemble_plot_path)</span>
+        <span class="s1">best_model = predictor.get_best_model(stock_name)</span>
+        <span class="s1">print(</span><span class="s4">f&quot;Best model for </span><span class="s0">{</span><span class="s1">stock_name</span><span class="s0">} </span><span class="s4">is </span><span class="s0">{</span><span class="s1">best_model</span><span class="s0">} </span><span class="s4">with MSE: </span><span class="s0">{</span><span class="s1">predictor.scores[stock_name][best_model]</span><span class="s0">:</span><span class="s4">.2f</span><span class="s0">}</span><span class="s4">&quot;</span><span class="s1">)</span>
+
+    <span class="s1">images = [imageio.imread(plot) </span><span class="s0">for </span><span class="s1">plot </span><span class="s0">in </span><span class="s1">saved_plots]</span>
+    <span class="s1">fig</span><span class="s0">, </span><span class="s1">axs = plt.subplots(nrows=len(stock_names)</span><span class="s0">, </span><span class="s1">ncols=</span><span class="s3">4</span><span class="s0">, </span><span class="s1">figsize=(</span><span class="s3">20</span><span class="s0">, </span><span class="s3">5 </span><span class="s1">* len(stock_names)))</span>
+    <span class="s0">for </span><span class="s1">i</span><span class="s0">, </span><span class="s1">stock_name </span><span class="s0">in </span><span class="s1">enumerate(stock_names):</span>
+        <span class="s1">axs[i</span><span class="s0">, </span><span class="s3">0</span><span class="s1">].imshow(images[i * </span><span class="s3">4</span><span class="s1">])</span>
+        <span class="s1">axs[i</span><span class="s0">, </span><span class="s3">1</span><span class="s1">].imshow(images[i * </span><span class="s3">4 </span><span class="s1">+ </span><span class="s3">1</span><span class="s1">])</span>
+        <span class="s1">axs[i</span><span class="s0">, </span><span class="s3">2</span><span class="s1">].imshow(images[i * </span><span class="s3">4 </span><span class="s1">+ </span><span class="s3">2</span><span class="s1">])</span>
+        <span class="s1">axs[i</span><span class="s0">, </span><span class="s3">3</span><span class="s1">].imshow(images[i * </span><span class="s3">4 </span><span class="s1">+ </span><span class="s3">3</span><span class="s1">])</span>
+        <span class="s1">axs[i</span><span class="s0">, </span><span class="s3">0</span><span class="s1">].axis(</span><span class="s4">'off'</span><span class="s1">)</span>
+        <span class="s1">axs[i</span><span class="s0">, </span><span class="s3">1</span><span class="s1">].axis(</span><span class="s4">'off'</span><span class="s1">)</span>
+        <span class="s1">axs[i</span><span class="s0">, </span><span class="s3">2</span><span class="s1">].axis(</span><span class="s4">'off'</span><span class="s1">)</span>
+        <span class="s1">axs[i</span><span class="s0">, </span><span class="s3">3</span><span class="s1">].axis(</span><span class="s4">'off'</span><span class="s1">)</span>
+    <span class="s1">plt.tight_layout()</span>
+    <span class="s1">plt.savefig(</span><span class="s4">&quot;combined_stock_predictions.png&quot;</span><span class="s0">, </span><span class="s1">dpi=</span><span class="s3">300</span><span class="s1">)</span>
+    <span class="s1">plt.show()</span>
+    <span class="s0">for </span><span class="s1">plot </span><span class="s0">in </span><span class="s1">saved_plots:</span>
+        <span class="s1">os.remove(plot)</span>
+
+        <span class="s1">plt.show()</span>
+
+        <span class="s0">for </span><span class="s1">plot </span><span class="s0">in </span><span class="s1">saved_plots:</span>
+            <span class="s1">os.remove(plot)</span>
+
+    <span class="s2"># Extracting model performance metrics to a CSV for reference.</span>
+    <span class="s1">model_performance_df = pd.DataFrame(predictor.scores).T</span>
+    <span class="s1">model_performance_df.to_csv(</span><span class="s4">'model_performance_metrics.csv'</span><span class="s0">, </span><span class="s1">index=</span><span class="s0">True</span><span class="s1">)</span>
+
+
+</pre>
+</body>
+</html>

@@ -1,0 +1,75 @@
+<html>
+<head>
+<title>StockDataExploration.py</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cc7832;}
+.s1 { color: #a9b7c6;}
+.s2 { color: #6a8759;}
+.s3 { color: #808080;}
+.s4 { color: #6897bb;}
+</style>
+</head>
+<body bgcolor="#2b2b2b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+StockDataExploration.py</font>
+</center></td></tr></table>
+<pre><span class="s0">import </span><span class="s1">pandas </span><span class="s0">as </span><span class="s1">pd</span>
+<span class="s0">import </span><span class="s1">matplotlib.pyplot </span><span class="s0">as </span><span class="s1">plt</span>
+<span class="s0">import </span><span class="s1">seaborn </span><span class="s0">as </span><span class="s1">sns</span>
+<span class="s0">from </span><span class="s1">scipy.stats </span><span class="s0">import </span><span class="s1">norm</span>
+
+<span class="s0">class </span><span class="s1">StockDataExploration:</span>
+
+    <span class="s0">def </span><span class="s1">__init__(self</span><span class="s0">, </span><span class="s1">file_path):</span>
+        <span class="s1">self.df = pd.read_csv(file_path)</span>
+
+    <span class="s0">def </span><span class="s1">univariate_advanced_analysis(self):</span>
+        <span class="s1">columns = [</span><span class="s2">'open'</span><span class="s0">, </span><span class="s2">'high'</span><span class="s0">, </span><span class="s2">'low'</span><span class="s0">, </span><span class="s2">'close'</span><span class="s0">, </span><span class="s2">'volume'</span><span class="s1">]</span>
+
+        <span class="s3"># Distribution Plots with Normal Distribution fit</span>
+        <span class="s0">for </span><span class="s1">column </span><span class="s0">in </span><span class="s1">columns:</span>
+            <span class="s1">plt.figure(figsize=(</span><span class="s4">10</span><span class="s0">, </span><span class="s4">6</span><span class="s1">))</span>
+            <span class="s1">sns.distplot(self.df[column]</span><span class="s0">, </span><span class="s1">fit=norm</span><span class="s0">, </span><span class="s1">kde=</span><span class="s0">False</span><span class="s1">)</span>
+            <span class="s1">plt.title(</span><span class="s2">f'Distribution plot of </span><span class="s0">{</span><span class="s1">column</span><span class="s0">} </span><span class="s2">with Normal Distribution'</span><span class="s1">)</span>
+            <span class="s1">plt.show()</span>
+
+        <span class="s3"># Violin plots</span>
+        <span class="s0">for </span><span class="s1">column </span><span class="s0">in </span><span class="s1">columns:</span>
+            <span class="s1">plt.figure(figsize=(</span><span class="s4">10</span><span class="s0">, </span><span class="s4">6</span><span class="s1">))</span>
+            <span class="s1">sns.violinplot(self.df[column])</span>
+            <span class="s1">plt.title(</span><span class="s2">f'Violin plot of </span><span class="s0">{</span><span class="s1">column</span><span class="s0">}</span><span class="s2">'</span><span class="s1">)</span>
+            <span class="s1">plt.show()</span>
+
+    <span class="s0">def </span><span class="s1">multivariate_advanced_analysis(self):</span>
+        <span class="s1">columns = [</span><span class="s2">'open'</span><span class="s0">, </span><span class="s2">'high'</span><span class="s0">, </span><span class="s2">'low'</span><span class="s0">, </span><span class="s2">'close'</span><span class="s0">, </span><span class="s2">'volume'</span><span class="s1">]</span>
+
+        <span class="s3"># Joint plots</span>
+        <span class="s1">sns.jointplot(x=</span><span class="s2">&quot;open&quot;</span><span class="s0">, </span><span class="s1">y=</span><span class="s2">&quot;volume&quot;</span><span class="s0">, </span><span class="s1">data=self.df</span><span class="s0">, </span><span class="s1">kind=</span><span class="s2">'scatter'</span><span class="s0">, </span><span class="s1">height=</span><span class="s4">8</span><span class="s1">)</span>
+        <span class="s1">plt.title(</span><span class="s2">'Joint plot of Opening Prices vs Volume'</span><span class="s1">)</span>
+        <span class="s1">plt.show()</span>
+
+        <span class="s3"># Pivot table for understanding stock patterns over time</span>
+        <span class="s1">pivot_open = self.df.pivot_table(index=</span><span class="s2">'name'</span><span class="s0">, </span><span class="s1">columns=</span><span class="s2">'data'</span><span class="s0">, </span><span class="s1">values=</span><span class="s2">'open'</span><span class="s1">)</span>
+        <span class="s1">plt.figure(figsize=(</span><span class="s4">20</span><span class="s0">, </span><span class="s4">10</span><span class="s1">))</span>
+        <span class="s1">sns.heatmap(pivot_open</span><span class="s0">, </span><span class="s1">cmap=</span><span class="s2">'coolwarm'</span><span class="s0">, </span><span class="s1">linecolor=</span><span class="s2">'white'</span><span class="s0">, </span><span class="s1">linewidth=</span><span class="s4">1</span><span class="s1">)</span>
+        <span class="s1">plt.title(</span><span class="s2">'Heatmap of Opening Prices over Time'</span><span class="s1">)</span>
+        <span class="s1">plt.show()</span>
+
+        <span class="s3"># Cluster map</span>
+        <span class="s1">sns.clustermap(pivot_open</span><span class="s0">, </span><span class="s1">cmap=</span><span class="s2">'coolwarm'</span><span class="s0">, </span><span class="s1">standard_scale=</span><span class="s4">1</span><span class="s1">)</span>
+        <span class="s1">plt.title(</span><span class="s2">'Clustered Heatmap of Opening Prices over Time'</span><span class="s1">)</span>
+        <span class="s1">plt.show()</span>
+
+    <span class="s0">def </span><span class="s1">process_advanced_exploration(self):</span>
+        <span class="s1">self.univariate_advanced_analysis()</span>
+        <span class="s1">self.multivariate_advanced_analysis()</span>
+
+<span class="s1">explorer = StockDataExploration(</span>
+    <span class="s2">&quot;C:</span><span class="s0">\\</span><span class="s2">Users</span><span class="s0">\\</span><span class="s2">User</span><span class="s0">\\</span><span class="s2">PycharmProjects</span><span class="s0">\\</span><span class="s2">StockPredictor</span><span class="s0">\\</span><span class="s2">StockAnalyst-main</span><span class="s0">\\</span><span class="s2">cleaned_stock_data.csv&quot;</span><span class="s1">)</span>
+<span class="s1">explorer.process_advanced_exploration()</span>
+</pre>
+</body>
+</html>

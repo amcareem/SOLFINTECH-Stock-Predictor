@@ -1,0 +1,61 @@
+<html>
+<head>
+<title>StockDataCleaner.py</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cc7832;}
+.s1 { color: #a9b7c6;}
+.s2 { color: #808080;}
+.s3 { color: #6a8759;}
+.s4 { color: #6897bb;}
+</style>
+</head>
+<body bgcolor="#2b2b2b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+StockDataCleaner.py</font>
+</center></td></tr></table>
+<pre><span class="s0">import </span><span class="s1">pandas </span><span class="s0">as </span><span class="s1">pd</span>
+<span class="s0">import </span><span class="s1">matplotlib.pyplot </span><span class="s0">as </span><span class="s1">plt</span>
+<span class="s0">import </span><span class="s1">seaborn </span><span class="s0">as </span><span class="s1">sns</span>
+<span class="s0">class </span><span class="s1">StockDataCleaner:</span>
+
+    <span class="s0">def </span><span class="s1">__init__(self</span><span class="s0">, </span><span class="s1">file_path):</span>
+        <span class="s1">self.df = pd.read_csv(file_path)</span>
+
+    <span class="s0">def </span><span class="s1">handle_missing_data(self):</span>
+        <span class="s2"># Drop rows with missing values</span>
+        <span class="s1">self.df.dropna(inplace=</span><span class="s0">True</span><span class="s1">)</span>
+
+    <span class="s0">def </span><span class="s1">check_data_types(self):</span>
+        <span class="s2"># Ensure the columns are of the correct data type</span>
+        <span class="s1">self.df[</span><span class="s3">'date'</span><span class="s1">] = pd.to_datetime(self.df[</span><span class="s3">'date'</span><span class="s1">])</span>
+        <span class="s0">for </span><span class="s1">column </span><span class="s0">in </span><span class="s1">[</span><span class="s3">'open'</span><span class="s0">, </span><span class="s3">'high'</span><span class="s0">, </span><span class="s3">'low'</span><span class="s0">, </span><span class="s3">'close'</span><span class="s0">, </span><span class="s3">'volume'</span><span class="s1">]:</span>
+            <span class="s1">self.df[column] = pd.to_numeric(self.df[column])</span>
+
+    <span class="s0">def </span><span class="s1">visualize_outliers(self</span><span class="s0">, </span><span class="s1">columns=[</span><span class="s3">'open'</span><span class="s0">, </span><span class="s3">'high'</span><span class="s0">, </span><span class="s3">'low'</span><span class="s0">, </span><span class="s3">'close'</span><span class="s1">]):</span>
+        <span class="s1">plt.figure(figsize=(</span><span class="s4">10</span><span class="s0">, </span><span class="s4">6</span><span class="s1">))</span>
+        <span class="s1">sns.boxplot(data=self.df[columns])</span>
+        <span class="s1">plt.title(</span><span class="s3">'Boxplot of Stock Values'</span><span class="s1">)</span>
+        <span class="s1">plt.show()</span>
+
+    <span class="s0">def </span><span class="s1">handle_outliers(self</span><span class="s0">, </span><span class="s1">columns=[</span><span class="s3">'open'</span><span class="s0">, </span><span class="s3">'high'</span><span class="s0">, </span><span class="s3">'low'</span><span class="s0">, </span><span class="s3">'close'</span><span class="s1">]):</span>
+        <span class="s2"># Use Z-Score or IQR method here to handle outliers if needed.</span>
+        <span class="s0">pass  </span><span class="s2"># Placeholder for any outlier handling logic</span>
+
+    <span class="s0">def </span><span class="s1">save_cleaned_data(self</span><span class="s0">, </span><span class="s1">save_path=</span><span class="s3">&quot;cleaned_stock_data.csv&quot;</span><span class="s1">):</span>
+        <span class="s1">self.df.to_csv(save_path</span><span class="s0">, </span><span class="s1">index=</span><span class="s0">False</span><span class="s1">)</span>
+
+    <span class="s0">def </span><span class="s1">process_data(self):</span>
+        <span class="s1">self.handle_missing_data()</span>
+        <span class="s1">self.check_data_types()</span>
+        <span class="s1">self.visualize_outliers()</span>
+        <span class="s1">self.handle_outliers()</span>
+        <span class="s1">self.save_cleaned_data()</span>
+
+<span class="s1">cleaner = StockDataCleaner(</span>
+    <span class="s3">&quot;C:</span><span class="s0">\\</span><span class="s3">Users</span><span class="s0">\\</span><span class="s3">User</span><span class="s0">\\</span><span class="s3">PycharmProjects</span><span class="s0">\\</span><span class="s3">StockPredictor</span><span class="s0">\\</span><span class="s3">StockAnalyst-main</span><span class="s0">\\</span><span class="s3">consolidated_stock_data.csv&quot;</span><span class="s1">)</span>
+<span class="s1">cleaner.process_data()</span></pre>
+</body>
+</html>

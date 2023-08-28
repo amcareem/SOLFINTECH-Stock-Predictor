@@ -1,0 +1,140 @@
+<html>
+<head>
+<title>dashboard.py</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cc7832;}
+.s1 { color: #a9b7c6;}
+.s2 { color: #808080;}
+.s3 { color: #6a8759;}
+.s4 { color: #6897bb;}
+</style>
+</head>
+<body bgcolor="#2b2b2b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+dashboard.py</font>
+</center></td></tr></table>
+<pre><span class="s0">import </span><span class="s1">dash</span>
+<span class="s0">from </span><span class="s1">dash </span><span class="s0">import </span><span class="s1">dcc</span><span class="s0">, </span><span class="s1">html</span>
+<span class="s0">from </span><span class="s1">dash.dependencies </span><span class="s0">import </span><span class="s1">Input</span><span class="s0">, </span><span class="s1">Output</span>
+<span class="s0">import </span><span class="s1">dash_bootstrap_components </span><span class="s0">as </span><span class="s1">dbc</span>
+<span class="s0">import </span><span class="s1">plotly.graph_objs </span><span class="s0">as </span><span class="s1">go</span>
+<span class="s0">import </span><span class="s1">plotly.figure_factory </span><span class="s0">as </span><span class="s1">ff</span>
+<span class="s0">import </span><span class="s1">pandas </span><span class="s0">as </span><span class="s1">pd</span>
+<span class="s0">import </span><span class="s1">numpy </span><span class="s0">as </span><span class="s1">np</span>
+
+<span class="s2"># Load the Data</span>
+<span class="s1">df = pd.read_csv(</span><span class="s3">&quot;cleaned_stock_data.csv&quot;</span><span class="s1">)</span>
+
+<span class="s1">app = dash.Dash(__name__</span><span class="s0">, </span><span class="s1">external_stylesheets=[dbc.themes.BOOTSTRAP])</span>
+
+<span class="s1">app.layout = html.Div([</span>
+    <span class="s1">dbc.Row(dbc.Col(html.H1(</span><span class="s3">&quot;Stock Analysis Dashboard&quot;</span><span class="s1">)</span><span class="s0">, </span><span class="s1">width={</span><span class="s3">'size'</span><span class="s1">: </span><span class="s4">6</span><span class="s0">, </span><span class="s3">'offset'</span><span class="s1">: </span><span class="s4">3</span><span class="s1">})</span><span class="s0">, </span><span class="s1">className=</span><span class="s3">'mb-4'</span><span class="s1">)</span><span class="s0">,</span>
+
+    <span class="s1">dbc.Row([</span>
+        <span class="s1">dbc.Col([</span>
+            <span class="s1">html.Label(</span><span class="s3">&quot;Select Stock:&quot;</span><span class="s1">)</span><span class="s0">,</span>
+            <span class="s1">dcc.Dropdown(id=</span><span class="s3">&quot;stock-dropdown&quot;</span><span class="s0">,</span>
+                         <span class="s1">options=[{</span><span class="s3">'label'</span><span class="s1">: stock</span><span class="s0">, </span><span class="s3">'value'</span><span class="s1">: stock} </span><span class="s0">for </span><span class="s1">stock </span><span class="s0">in </span><span class="s1">df[</span><span class="s3">'name'</span><span class="s1">].unique()]</span><span class="s0">,</span>
+                         <span class="s1">value=df[</span><span class="s3">'name'</span><span class="s1">].unique()[</span><span class="s4">0</span><span class="s1">]</span><span class="s0">,</span>
+                         <span class="s1">clearable=</span><span class="s0">False</span><span class="s1">)</span>
+        <span class="s1">]</span><span class="s0">, </span><span class="s1">width=</span><span class="s4">4</span><span class="s1">)</span><span class="s0">,</span>
+
+        <span class="s1">dbc.Col([</span>
+            <span class="s1">html.Label(</span><span class="s3">&quot;Select Date Range:&quot;</span><span class="s1">)</span><span class="s0">,</span>
+            <span class="s1">dcc.DatePickerRange(id=</span><span class="s3">&quot;date-picker&quot;</span><span class="s0">,</span>
+                                <span class="s1">start_date=df[</span><span class="s3">'date'</span><span class="s1">].min()</span><span class="s0">,</span>
+                                <span class="s1">end_date=df[</span><span class="s3">'date'</span><span class="s1">].max()</span><span class="s0">,</span>
+                                <span class="s1">display_format=</span><span class="s3">'YYYY-MM-DD'</span><span class="s1">)</span>
+        <span class="s1">]</span><span class="s0">, </span><span class="s1">width=</span><span class="s4">4</span><span class="s1">)</span>
+    <span class="s1">]</span><span class="s0">, </span><span class="s1">className=</span><span class="s3">'mb-4'</span><span class="s1">)</span><span class="s0">,</span>
+
+    <span class="s1">dbc.Row([</span>
+        <span class="s1">dbc.Col(dcc.Graph(id=</span><span class="s3">'time-series-plot'</span><span class="s1">)</span><span class="s0">, </span><span class="s1">width=</span><span class="s4">12</span><span class="s1">)</span><span class="s0">,</span>
+    <span class="s1">]</span><span class="s0">, </span><span class="s1">className=</span><span class="s3">'mb-4'</span><span class="s1">)</span><span class="s0">,</span>
+
+    <span class="s1">dbc.Row([</span>
+        <span class="s1">dbc.Col(dcc.Graph(id=</span><span class="s3">'moving-average-plot'</span><span class="s1">)</span><span class="s0">, </span><span class="s1">width=</span><span class="s4">12</span><span class="s1">)</span><span class="s0">, </span><span class="s2"># New Moving Average Plot</span>
+    <span class="s1">]</span><span class="s0">, </span><span class="s1">className=</span><span class="s3">'mb-4'</span><span class="s1">)</span><span class="s0">,</span>
+
+    <span class="s1">dbc.Row([</span>
+        <span class="s1">dbc.Col(dcc.Graph(id=</span><span class="s3">'volume-chart'</span><span class="s1">)</span><span class="s0">, </span><span class="s1">width=</span><span class="s4">6</span><span class="s1">)</span><span class="s0">,</span>
+        <span class="s1">dbc.Col(html.Div(id=</span><span class="s3">'stats-display'</span><span class="s1">)</span><span class="s0">, </span><span class="s1">width=</span><span class="s4">6</span><span class="s1">)</span>
+    <span class="s1">]</span><span class="s0">, </span><span class="s1">className=</span><span class="s3">'mb-4'</span><span class="s1">)</span><span class="s0">,</span>
+
+    <span class="s1">dbc.Row([</span>
+        <span class="s1">dbc.Col(dcc.Graph(id=</span><span class="s3">'histogram'</span><span class="s1">)</span><span class="s0">, </span><span class="s1">width=</span><span class="s4">6</span><span class="s1">)</span><span class="s0">,</span>
+        <span class="s1">dbc.Col(dcc.Graph(id=</span><span class="s3">'correlation-matrix'</span><span class="s1">)</span><span class="s0">, </span><span class="s1">width=</span><span class="s4">6</span><span class="s1">)</span>
+    <span class="s1">]</span><span class="s0">, </span><span class="s1">className=</span><span class="s3">'mb-4'</span><span class="s1">)</span>
+<span class="s1">])</span>
+
+
+<span class="s1">@app.callback(</span>
+    <span class="s1">[Output(</span><span class="s3">'time-series-plot'</span><span class="s0">, </span><span class="s3">'figure'</span><span class="s1">)</span><span class="s0">,</span>
+     <span class="s1">Output(</span><span class="s3">'moving-average-plot'</span><span class="s0">, </span><span class="s3">'figure'</span><span class="s1">)</span><span class="s0">, </span><span class="s2"># New Output</span>
+     <span class="s1">Output(</span><span class="s3">'volume-chart'</span><span class="s0">, </span><span class="s3">'figure'</span><span class="s1">)</span><span class="s0">,</span>
+     <span class="s1">Output(</span><span class="s3">'stats-display'</span><span class="s0">, </span><span class="s3">'children'</span><span class="s1">)</span><span class="s0">,</span>
+     <span class="s1">Output(</span><span class="s3">'histogram'</span><span class="s0">, </span><span class="s3">'figure'</span><span class="s1">)</span><span class="s0">,</span>
+     <span class="s1">Output(</span><span class="s3">'correlation-matrix'</span><span class="s0">, </span><span class="s3">'figure'</span><span class="s1">)]</span><span class="s0">,</span>
+    <span class="s1">[Input(</span><span class="s3">'stock-dropdown'</span><span class="s0">, </span><span class="s3">'value'</span><span class="s1">)</span><span class="s0">,</span>
+     <span class="s1">Input(</span><span class="s3">'date-picker'</span><span class="s0">, </span><span class="s3">'start_date'</span><span class="s1">)</span><span class="s0">,</span>
+     <span class="s1">Input(</span><span class="s3">'date-picker'</span><span class="s0">, </span><span class="s3">'end_date'</span><span class="s1">)]</span>
+<span class="s1">)</span>
+<span class="s0">def </span><span class="s1">update_graphs(stock_selected</span><span class="s0">, </span><span class="s1">start_date</span><span class="s0">, </span><span class="s1">end_date):</span>
+    <span class="s1">dff = df[(df[</span><span class="s3">'name'</span><span class="s1">] == stock_selected) &amp; (df[</span><span class="s3">'date'</span><span class="s1">] &gt;= start_date) &amp; (df[</span><span class="s3">'date'</span><span class="s1">] &lt;= end_date)]</span>
+
+    <span class="s2"># Time Series Plot</span>
+    <span class="s1">ts_fig = go.Figure()</span>
+    <span class="s0">for </span><span class="s1">column </span><span class="s0">in </span><span class="s1">[</span><span class="s3">'open'</span><span class="s0">, </span><span class="s3">'close'</span><span class="s0">, </span><span class="s3">'high'</span><span class="s0">, </span><span class="s3">'low'</span><span class="s1">]:</span>
+        <span class="s1">ts_fig.add_trace(go.Scatter(x=dff[</span><span class="s3">'date'</span><span class="s1">]</span><span class="s0">, </span><span class="s1">y=dff[column]</span><span class="s0">,</span>
+                                    <span class="s1">mode=</span><span class="s3">'lines'</span><span class="s0">, </span><span class="s1">name=column.capitalize()))</span>
+    <span class="s1">ts_fig.update_layout(title_text=</span><span class="s3">f&quot;Time Series of Stock </span><span class="s0">{</span><span class="s1">stock_selected</span><span class="s0">}</span><span class="s3">&quot;</span><span class="s0">,</span>
+                         <span class="s1">xaxis_title=</span><span class="s3">&quot;Date&quot;</span><span class="s0">, </span><span class="s1">yaxis_title=</span><span class="s3">&quot;Price&quot;</span><span class="s1">)</span>
+
+    <span class="s2"># Moving Average Plot</span>
+    <span class="s1">ma_short = dff[</span><span class="s3">'close'</span><span class="s1">].rolling(window=</span><span class="s4">50</span><span class="s1">).mean()</span>
+    <span class="s1">ma_long = dff[</span><span class="s3">'close'</span><span class="s1">].rolling(window=</span><span class="s4">200</span><span class="s1">).mean()</span>
+    <span class="s1">ma_fig = go.Figure()</span>
+    <span class="s1">ma_fig.add_trace(go.Scatter(x=dff[</span><span class="s3">'date'</span><span class="s1">]</span><span class="s0">, </span><span class="s1">y=dff[</span><span class="s3">'close'</span><span class="s1">]</span><span class="s0">,</span>
+                                <span class="s1">mode=</span><span class="s3">'lines'</span><span class="s0">, </span><span class="s1">name=</span><span class="s3">'Close Price'</span><span class="s1">))</span>
+    <span class="s1">ma_fig.add_trace(go.Scatter(x=dff[</span><span class="s3">'date'</span><span class="s1">]</span><span class="s0">, </span><span class="s1">y=ma_short</span><span class="s0">,</span>
+                                <span class="s1">mode=</span><span class="s3">'lines'</span><span class="s0">, </span><span class="s1">name=</span><span class="s3">'50-day MA'</span><span class="s1">))</span>
+    <span class="s1">ma_fig.add_trace(go.Scatter(x=dff[</span><span class="s3">'date'</span><span class="s1">]</span><span class="s0">, </span><span class="s1">y=ma_long</span><span class="s0">,</span>
+                                <span class="s1">mode=</span><span class="s3">'lines'</span><span class="s0">, </span><span class="s1">name=</span><span class="s3">'200-day MA'</span><span class="s1">))</span>
+    <span class="s1">ma_fig.update_layout(title_text=</span><span class="s3">f&quot;Moving Averages for Stock </span><span class="s0">{</span><span class="s1">stock_selected</span><span class="s0">}</span><span class="s3">&quot;</span><span class="s0">,</span>
+                         <span class="s1">xaxis_title=</span><span class="s3">&quot;Date&quot;</span><span class="s0">, </span><span class="s1">yaxis_title=</span><span class="s3">&quot;Price&quot;</span><span class="s1">)</span>
+
+    <span class="s2"># Volume Chart</span>
+    <span class="s1">volume_fig = go.Figure()</span>
+    <span class="s1">volume_fig.add_trace(go.Bar(x=dff[</span><span class="s3">'date'</span><span class="s1">]</span><span class="s0">, </span><span class="s1">y=dff[</span><span class="s3">'volume'</span><span class="s1">]</span><span class="s0">, </span><span class="s1">name=</span><span class="s3">'Volume'</span><span class="s1">))</span>
+    <span class="s1">volume_fig.update_layout(title_text=</span><span class="s3">f&quot;Volume of Stock </span><span class="s0">{</span><span class="s1">stock_selected</span><span class="s0">}</span><span class="s3">&quot;</span><span class="s0">,</span>
+                             <span class="s1">xaxis_title=</span><span class="s3">&quot;Date&quot;</span><span class="s0">, </span><span class="s1">yaxis_title=</span><span class="s3">&quot;Volume&quot;</span><span class="s1">)</span>
+
+    <span class="s2"># Descriptive Statistics</span>
+    <span class="s1">stats = dff[[</span><span class="s3">'open'</span><span class="s0">, </span><span class="s3">'high'</span><span class="s0">, </span><span class="s3">'low'</span><span class="s0">, </span><span class="s3">'close'</span><span class="s1">]].describe().transpose().round(</span><span class="s4">2</span><span class="s1">)</span>
+    <span class="s1">stats_display = dbc.Table.from_dataframe(stats</span><span class="s0">, </span><span class="s1">striped=</span><span class="s0">True, </span><span class="s1">bordered=</span><span class="s0">True, </span><span class="s1">hover=</span><span class="s0">True</span><span class="s1">)</span>
+
+    <span class="s2"># Histogram</span>
+    <span class="s1">histogram = go.Figure()</span>
+    <span class="s1">histogram.add_trace(go.Histogram(x=dff[</span><span class="s3">'close'</span><span class="s1">]</span><span class="s0">, </span><span class="s1">name=</span><span class="s3">'Close Price'</span><span class="s1">))</span>
+    <span class="s1">histogram.update_layout(title_text=</span><span class="s3">f&quot;Distribution of Close Price for </span><span class="s0">{</span><span class="s1">stock_selected</span><span class="s0">}</span><span class="s3">&quot;</span><span class="s0">,</span>
+                            <span class="s1">xaxis_title=</span><span class="s3">&quot;Price&quot;</span><span class="s0">, </span><span class="s1">yaxis_title=</span><span class="s3">&quot;Frequency&quot;</span><span class="s1">)</span>
+
+    <span class="s2"># Correlation Matrix</span>
+    <span class="s1">correlation = dff[[</span><span class="s3">'open'</span><span class="s0">, </span><span class="s3">'high'</span><span class="s0">, </span><span class="s3">'low'</span><span class="s0">, </span><span class="s3">'close'</span><span class="s1">]].corr()</span>
+    <span class="s1">correlation_fig = ff.create_annotated_heatmap(z=correlation.values</span><span class="s0">,</span>
+                                                  <span class="s1">x=list(correlation.columns)</span><span class="s0">,</span>
+                                                  <span class="s1">y=list(correlation.index)</span><span class="s0">,</span>
+                                                  <span class="s1">annotation_text=correlation.round(</span><span class="s4">2</span><span class="s1">).values</span><span class="s0">,</span>
+                                                  <span class="s1">showscale=</span><span class="s0">True</span><span class="s1">)</span>
+    <span class="s1">correlation_fig.update_layout(title_text=</span><span class="s3">f&quot;Correlation Matrix for </span><span class="s0">{</span><span class="s1">stock_selected</span><span class="s0">}</span><span class="s3">&quot;</span><span class="s1">)</span>
+
+    <span class="s0">return </span><span class="s1">ts_fig</span><span class="s0">, </span><span class="s1">ma_fig</span><span class="s0">, </span><span class="s1">volume_fig</span><span class="s0">, </span><span class="s1">stats_display</span><span class="s0">, </span><span class="s1">histogram</span><span class="s0">, </span><span class="s1">correlation_fig  </span><span class="s2"># Added ma_fig here</span>
+
+<span class="s0">if </span><span class="s1">__name__ == </span><span class="s3">'__main__'</span><span class="s1">:</span>
+    <span class="s1">app.run_server(debug=</span><span class="s0">True</span><span class="s1">)</span>
+</pre>
+</body>
+</html>

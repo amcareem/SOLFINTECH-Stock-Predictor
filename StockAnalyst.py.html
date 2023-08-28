@@ -1,0 +1,139 @@
+<html>
+<head>
+<title>StockAnalyst.py</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #808080;}
+.s1 { color: #a9b7c6;}
+.s2 { color: #cc7832;}
+.s3 { color: #6a8759;}
+.s4 { color: #6897bb;}
+</style>
+</head>
+<body bgcolor="#2b2b2b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+StockAnalyst.py</font>
+</center></td></tr></table>
+<pre><span class="s0"># Imports needed</span>
+<span class="s2">import </span><span class="s1">pandas </span><span class="s2">as </span><span class="s1">pd</span>
+<span class="s2">import </span><span class="s1">numpy </span><span class="s2">as </span><span class="s1">np</span>
+<span class="s2">from </span><span class="s1">datetime </span><span class="s2">import </span><span class="s1">datetime</span><span class="s2">, </span><span class="s1">date</span>
+<span class="s2">from </span><span class="s1">sklearn.model_selection </span><span class="s2">import </span><span class="s1">train_test_split</span><span class="s2">, </span><span class="s1">KFold</span><span class="s2">, </span><span class="s1">cross_val_score</span>
+<span class="s2">from </span><span class="s1">sklearn.linear_model </span><span class="s2">import </span><span class="s1">LinearRegression</span><span class="s2">, </span><span class="s1">Lasso</span><span class="s2">, </span><span class="s1">ElasticNet</span>
+<span class="s2">from </span><span class="s1">sklearn.tree </span><span class="s2">import </span><span class="s1">DecisionTreeRegressor</span>
+<span class="s2">from </span><span class="s1">sklearn.neighbors </span><span class="s2">import </span><span class="s1">KNeighborsRegressor</span>
+<span class="s2">from </span><span class="s1">sklearn.svm </span><span class="s2">import </span><span class="s1">SVR</span>
+<span class="s2">from </span><span class="s1">sklearn </span><span class="s2">import </span><span class="s1">ensemble</span>
+<span class="s2">from </span><span class="s1">matplotlib </span><span class="s2">import </span><span class="s1">pyplot </span><span class="s2">as </span><span class="s1">plt</span>
+<span class="s2">from </span><span class="s1">sklearn.metrics </span><span class="s2">import </span><span class="s1">mean_squared_error</span><span class="s2">, </span><span class="s1">r2_score</span>
+<span class="s2">import </span><span class="s1">warnings</span>
+<span class="s1">warnings.filterwarnings(</span><span class="s3">&quot;ignore&quot;</span><span class="s1">)</span>
+
+<span class="s0"># Variables </span>
+<span class="s1">dates = [</span><span class="s3">&quot;2021-5-9&quot;</span><span class="s2">, </span><span class="s3">&quot;2021-5-10&quot;</span><span class="s2">, </span><span class="s3">&quot;2021-5-11&quot;</span><span class="s2">, </span><span class="s3">&quot;2021-5-12&quot;</span><span class="s2">, </span><span class="s3">&quot;2021-5-13&quot;</span><span class="s1">]</span>
+<span class="s1">stock = </span><span class="s3">&quot;TISC&quot;</span>
+<span class="s1">models = []</span>
+<span class="s1">models.append((</span><span class="s3">'LR '</span><span class="s2">, </span><span class="s1">LinearRegression()))</span>
+<span class="s1">models.append((</span><span class="s3">'LASSO '</span><span class="s2">, </span><span class="s1">Lasso()))</span>
+<span class="s1">models.append((</span><span class="s3">'EN '</span><span class="s2">, </span><span class="s1">ElasticNet()))</span>
+<span class="s1">models.append((</span><span class="s3">'KNN '</span><span class="s2">, </span><span class="s1">KNeighborsRegressor()))</span>
+<span class="s1">models.append((</span><span class="s3">'CART '</span><span class="s2">, </span><span class="s1">DecisionTreeRegressor()))</span>
+<span class="s1">models.append((</span><span class="s3">'SVR '</span><span class="s2">, </span><span class="s1">SVR()))</span>
+
+<span class="s0"># Prepares data, given stock name</span>
+<span class="s2">def </span><span class="s1">prepareData(stock</span><span class="s2">, </span><span class="s1">column):</span>
+  <span class="s1">df = pd.read_csv(</span><span class="s3">&quot;stock_data/%s.csv&quot;</span><span class="s1">%(stock)</span><span class="s2">, </span><span class="s1">index_col=</span><span class="s3">'Date'</span><span class="s1">)</span>
+  <span class="s1">prices = df[[column]]</span>
+  <span class="s1">prices.reset_index(level=</span><span class="s4">0</span><span class="s2">, </span><span class="s1">inplace=</span><span class="s2">True</span><span class="s1">)</span>
+  <span class="s1">prices[</span><span class="s3">&quot;timestamp&quot;</span><span class="s1">] = pd.to_datetime(prices.Date).astype(np.int64) // (</span><span class="s4">10</span><span class="s1">**</span><span class="s4">9</span><span class="s1">)</span>
+  <span class="s1">prices = prices.drop([</span><span class="s3">'Date'</span><span class="s1">]</span><span class="s2">, </span><span class="s1">axis=</span><span class="s4">1</span><span class="s1">)</span>
+
+  <span class="s1">dataset = prices.values</span>
+  <span class="s1">X = dataset[:</span><span class="s2">,</span><span class="s4">1</span><span class="s1">].reshape(-</span><span class="s4">1</span><span class="s2">,</span><span class="s4">1</span><span class="s1">)</span>
+  <span class="s1">Y = dataset[:</span><span class="s2">,</span><span class="s4">0</span><span class="s1">:</span><span class="s4">1</span><span class="s1">]</span>
+
+  <span class="s2">return </span><span class="s1">X</span><span class="s2">, </span><span class="s1">Y</span>
+
+<span class="s0"># Selection of model to use for testing</span>
+<span class="s2">def </span><span class="s1">compareModel(models</span><span class="s2">, </span><span class="s1">X_train</span><span class="s2">, </span><span class="s1">X_validation</span><span class="s2">, </span><span class="s1">Y_train</span><span class="s2">, </span><span class="s1">Y_validation):</span>
+  <span class="s0"># Test options and evaluation metric</span>
+  <span class="s1">num_folds = </span><span class="s4">10</span>
+  <span class="s1">seed = </span><span class="s4">7</span>
+  <span class="s1">scoring = </span><span class="s3">&quot;r2&quot;</span>
+
+  <span class="s0"># evaluate each model in turn</span>
+  <span class="s1">results = []</span>
+  <span class="s1">names = []</span>
+  <span class="s2">for </span><span class="s1">name</span><span class="s2">, </span><span class="s1">model </span><span class="s2">in </span><span class="s1">models:</span>
+      <span class="s1">kfold = KFold(n_splits=num_folds</span><span class="s2">, </span><span class="s1">random_state=seed</span><span class="s2">, </span><span class="s1">shuffle=</span><span class="s2">True</span><span class="s1">)</span>
+      <span class="s1">cv_results = cross_val_score(model</span><span class="s2">, </span><span class="s1">X_train</span><span class="s2">, </span><span class="s1">Y_train</span><span class="s2">, </span><span class="s1">cv=kfold</span><span class="s2">, </span><span class="s1">scoring=scoring)</span>
+      <span class="s0"># print(cv_results)</span>
+      <span class="s1">results.append(cv_results)</span>
+      <span class="s1">names.append(name)</span>
+      <span class="s1">msg = </span><span class="s3">&quot;%s: %f (%f)&quot; </span><span class="s1">% (name</span><span class="s2">, </span><span class="s1">cv_results.mean()</span><span class="s2">, </span><span class="s1">cv_results.std())</span>
+      <span class="s0">#print(msg)</span>
+  
+  <span class="s0"># For GBR</span>
+  <span class="s1">params = {</span><span class="s3">'n_estimators'</span><span class="s1">: </span><span class="s4">500</span><span class="s2">, </span><span class="s3">'max_depth'</span><span class="s1">: </span><span class="s4">4</span><span class="s2">, </span><span class="s3">'min_samples_split'</span><span class="s1">: </span><span class="s4">2</span><span class="s2">,</span>
+          <span class="s3">'learning_rate'</span><span class="s1">: </span><span class="s4">0.01</span><span class="s2">, </span><span class="s3">'loss'</span><span class="s1">: </span><span class="s3">'ls'</span><span class="s1">}</span>
+  <span class="s1">model = ensemble.GradientBoostingRegressor(**params)</span>
+  <span class="s1">model.fit(X_train</span><span class="s2">, </span><span class="s1">Y_train)</span>
+  <span class="s1">model_score = model.score(X_train</span><span class="s2">, </span><span class="s1">Y_train)</span>
+  <span class="s0"># Have a look at R sq to give an idea of the fit ,</span>
+  <span class="s0"># Explained variance score: 1 is perfect prediction</span>
+  <span class="s0">#print('Test Variance score: %.2f' % r2_score(Y_validation, y_predicted))</span>
+  <span class="s0">#print('GBR: %f',model_score)</span>
+
+  <span class="s2">return </span><span class="s1">models[</span><span class="s4">5</span><span class="s1">][</span><span class="s4">1</span><span class="s1">]</span>
+
+
+<span class="s2">def </span><span class="s1">predictPrice(stock</span><span class="s2">, </span><span class="s1">column</span><span class="s2">, </span><span class="s1">dates):</span>
+  <span class="s2">global </span><span class="s1">models</span>
+  <span class="s1">X</span><span class="s2">, </span><span class="s1">Y = prepareData(stock</span><span class="s2">, </span><span class="s1">column)</span>
+  <span class="s1">X_train</span><span class="s2">, </span><span class="s1">X_validation</span><span class="s2">, </span><span class="s1">Y_train</span><span class="s2">, </span><span class="s1">Y_validation = train_test_split(X</span><span class="s2">, </span><span class="s1">Y</span><span class="s2">, </span><span class="s1">test_size=</span><span class="s4">0.2</span><span class="s2">, </span><span class="s1">random_state=</span><span class="s4">7</span><span class="s1">)</span>
+  <span class="s1">model = compareModel(models</span><span class="s2">, </span><span class="s1">X_train</span><span class="s2">, </span><span class="s1">X_validation</span><span class="s2">, </span><span class="s1">Y_train</span><span class="s2">, </span><span class="s1">Y_validation)</span>
+
+  <span class="s0"># Fit to model</span>
+  <span class="s1">model.fit(X_train</span><span class="s2">, </span><span class="s1">Y_train)</span>
+  <span class="s0"># predict</span>
+  
+  <span class="s0">#convert to time stamp</span>
+  <span class="s2">for </span><span class="s1">dt </span><span class="s2">in </span><span class="s1">dates:</span>
+    <span class="s1">datetime_object = datetime.strptime(dt</span><span class="s2">, </span><span class="s3">&quot;%Y-%m-%d&quot;</span><span class="s1">)</span>
+    <span class="s1">timestamp = datetime.timestamp(datetime_object)</span>
+    <span class="s0"># to array X</span>
+    <span class="s1">X = np.append(X</span><span class="s2">, </span><span class="s1">int(timestamp))</span>
+  <span class="s1">X = X.reshape((len(X)</span><span class="s2">,</span><span class="s4">1</span><span class="s1">))</span>
+
+  <span class="s1">predictions = model.predict(X)</span>
+  <span class="s3">&quot;&quot;&quot; 
+  #matplotlib inline  
+  fig= plt.figure(figsize=(24,12)) 
+  plt.plot(X,Y) 
+  plt.plot(X,predictions) 
+  plt.show() 
+  &quot;&quot;&quot;</span>
+  <span class="s2">return </span><span class="s1">pd.Series(predictions)</span>
+
+<span class="s2">def </span><span class="s1">generateTable(stock</span><span class="s2">, </span><span class="s1">dates=dates):</span>
+  <span class="s1">predictions_low = predictPrice(stock</span><span class="s2">, </span><span class="s3">'Low'</span><span class="s2">, </span><span class="s1">dates)[-len(dates):].reset_index(drop=</span><span class="s2">True</span><span class="s1">)</span>
+  <span class="s1">predictions_high = predictPrice(stock</span><span class="s2">, </span><span class="s3">&quot;High&quot;</span><span class="s2">, </span><span class="s1">dates)[-len(dates):].reset_index(drop=</span><span class="s2">True</span><span class="s1">)</span>
+  
+  <span class="s1">table = pd.concat([pd.Series(dates).rename(</span><span class="s3">'Date'</span><span class="s1">)</span><span class="s2">, </span><span class="s1">predictions_low.rename(</span><span class="s3">'Pred_Low'</span><span class="s1">)</span><span class="s2">, </span><span class="s1">predictions_high.rename(</span><span class="s3">'Pred_High'</span><span class="s1">)]</span><span class="s2">, </span><span class="s1">axis=</span><span class="s4">1</span><span class="s1">)</span>
+  
+  <span class="s1">table[</span><span class="s3">'Pred_Difference'</span><span class="s1">] = table[</span><span class="s3">'Pred_High'</span><span class="s1">] - table[</span><span class="s3">'Pred_Low'</span><span class="s1">]</span>
+  <span class="s1">table[</span><span class="s3">'Pred_Difference_Percentage'</span><span class="s1">] = (table[</span><span class="s3">'Pred_Difference'</span><span class="s1">] / table[</span><span class="s3">'Pred_Low'</span><span class="s1">])*</span><span class="s4">100</span>
+
+  <span class="s2">return </span><span class="s1">table</span>
+
+
+<span class="s2">def </span><span class="s1">saveTable(stock</span><span class="s2">, </span><span class="s1">table):</span>
+
+  <span class="s1">stockname = [stock </span><span class="s2">for </span><span class="s1">i </span><span class="s2">in </span><span class="s1">range(len(table))]</span>
+  <span class="s1">table = pd.concat([pd.Series(stockname).rename(</span><span class="s3">&quot;Stock_Name&quot;</span><span class="s1">)</span><span class="s2">, </span><span class="s1">table]</span><span class="s2">, </span><span class="s1">axis=</span><span class="s4">1</span><span class="s1">)</span>
+
+  <span class="s1">table.to_csv(</span><span class="s3">'stock_pred.csv'</span><span class="s2">, </span><span class="s1">mode=</span><span class="s3">'a'</span><span class="s2">, </span><span class="s1">header=</span><span class="s2">False</span><span class="s1">)</span></pre>
+</body>
+</html>

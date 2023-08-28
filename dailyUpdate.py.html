@@ -1,0 +1,39 @@
+<html>
+<head>
+<title>dailyUpdate.py</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #808080;}
+.s1 { color: #a9b7c6;}
+.s2 { color: #cc7832;}
+.s3 { color: #6a8759;}
+</style>
+</head>
+<body bgcolor="#2b2b2b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+dailyUpdate.py</font>
+</center></td></tr></table>
+<pre><span class="s0"># Imports needed</span>
+
+<span class="s2">from </span><span class="s1">loadData </span><span class="s2">import </span><span class="s1">loadStocks</span>
+<span class="s2">from </span><span class="s1">StockAnalyst </span><span class="s2">import </span><span class="s1">generateTable</span><span class="s2">, </span><span class="s1">saveTable</span>
+<span class="s2">from </span><span class="s1">os </span><span class="s2">import </span><span class="s1">listdir</span>
+<span class="s2">from </span><span class="s1">os.path </span><span class="s2">import </span><span class="s1">isfile</span><span class="s2">, </span><span class="s1">join</span>
+
+<span class="s0"># --------------------------------- #</span>
+
+<span class="s0"># Edit dates as needed</span>
+<span class="s1">dates = [</span><span class="s3">&quot;2021-5-9&quot;</span><span class="s2">, </span><span class="s3">&quot;2021-5-10&quot;</span><span class="s2">, </span><span class="s3">&quot;2021-5-11&quot;</span><span class="s2">, </span><span class="s3">&quot;2021-5-12&quot;</span><span class="s2">, </span><span class="s3">&quot;2021-5-13&quot;</span><span class="s1">]</span>
+
+<span class="s0"># Edit stocks list as needed</span>
+<span class="s1">loadStocks()</span>
+
+<span class="s1">stocks_loaded = [f </span><span class="s2">for </span><span class="s1">f </span><span class="s2">in </span><span class="s1">listdir(</span><span class="s3">'stock_data'</span><span class="s1">) </span><span class="s2">if </span><span class="s1">isfile(join(</span><span class="s3">'stock_data'</span><span class="s2">, </span><span class="s1">f))]</span>
+
+<span class="s2">for </span><span class="s1">stock </span><span class="s2">in </span><span class="s1">stocks_loaded:</span>
+    <span class="s1">saveTable(stock</span><span class="s2">, </span><span class="s1">generateTable(stock</span><span class="s2">, </span><span class="s1">dates))</span>
+    <span class="s1">print(stock</span><span class="s2">, </span><span class="s3">'saved'</span><span class="s1">)</span></pre>
+</body>
+</html>

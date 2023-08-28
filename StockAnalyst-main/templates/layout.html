@@ -1,0 +1,74 @@
+<html>
+ <head>
+  <meta charset="utf-8">
+  <title>StockAnalyst</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+ </head>
+ <body>
+
+  {% include 'navbar.html' %}
+
+  <div class='container'>
+    <div class="jumbotron text-center">
+        <h1> <a href="#">SOLFINTECH Stock Predictor</a> </h1>
+        <a href="/dashboard/" class="btn btn-primary mt-3">Go to Dashboard</a>
+        <p class="lead mt-3"> Unleash the Power of ML & AI and witness the future of trading solutions</p>
+        {% block title %} {% endblock %}
+    </div>
+    {% block body %}{% endblock %}
+  </div>
+
+  <!-- Help Modal -->
+  <div class="modal fade" id="helpModal" tabindex="-1" role="dialog" aria-labelledby="helpModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="helpModalLabel">Help & Guidance</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <h5>📌 Homepage:</h5>
+                <p><strong>Stock Analysis Section:</strong> Enter a company name to view its stock details. Additionally, adjust your predictions with the "What if" feature. You can input interest rate changes and select market confidence (positive or negative) to get both original and adjusted predictions.</p>
+                <p><strong>About Tab:</strong> Navigate here to learn more about our company and the services we provide.</p>
+
+                <h5>📌 Dashboard:</h5>
+                <ul>
+                    <li><strong>Access:</strong> Click on "Go to Dashboard" to view the comprehensive stock analysis dashboard.</li>
+                    <li><strong>Stock Selection:</strong> Choose your desired stock from the drop-down menu on the left.</li>
+                    <li><strong>Date Range:</strong> Customize the date range for the stock analysis using the option on the right.</li>
+                    <li><strong>Current Stock Price:</strong> This will be prominently displayed at the top for easy reference.</li>
+                    <li><strong>Charts:</strong></li>
+                    <ul>
+                        <li><strong>Time Series Chart:</strong> Understand stock behavior with metrics like the opening price, closing price, highest, and lowest prices displayed in a line chart format.</li>
+                        <li><strong>Volume Chart:</strong> Scroll down to view how the trading volume for the stock has changed over your selected period.</li>
+                        <li><strong>Moving Averages Chart:</strong> A graphical representation to understand the average stock price over a specific period.</li>
+                        <li><strong>...and more!:</strong> Keep exploring to discover additional insights and charts.</li>
+                    </ul>
+                </ul>
+
+                <h5>📌 AI Predictor:</h5>
+                <ul>
+                    <li><strong>Access:</strong> Click on the "AI predictor" button to navigate to the prediction page.</li>
+                    <li><strong>Future Stock Price Prediction:</strong> Get forecasts for 1 day, 7 days, and 30 days into the future.</li>
+                    <li><strong>Best Stock Recommendation:</strong> Allow our AI to suggest the best stock for your investment based on various parameters.</li>
+                </ul>
+
+                <h5>📌 Lowest Stocks:</h5>
+                <p>Click the "Lowest Stocks" button to discover if any stocks have hit their lowest rate in the past 30 days.</p>
+            </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"> </script>
+ </body>
+</html>
